@@ -5,7 +5,7 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     [SerializeField] GameObject hit_Effect; // 총알이 맞았을 때 생성할 이펙트
-    [SerializeField] int actorNumber; // 총알을 발사한 플레이어의 번호
+    public int actorNumber; // 총알을 발사한 플레이어의 고유번호
 
     void Start()
     {

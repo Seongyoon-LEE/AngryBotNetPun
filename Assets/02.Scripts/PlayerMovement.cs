@@ -4,14 +4,14 @@ using UnityEngine;
 using Cinemachine;
 using Photon.Pun;
 
-public class PlayerMovement : MonoBehaviourPun, IPunObservable
+public class PlayerMovement : MonoBehaviourPun
 {
     private CharacterController controller;
     private new Transform transform;
     private Animator animator;
     private new Camera camera;
     private CinemachineVirtualCamera virtualCamera;
-    private PhotonView photonView = null;
+    private PhotonView pv= null;
     private Plane plane; // 가상의 Plane 에 레이캐스팅 하기 위한 변수 
     private Ray ray;
     private Vector3 hitPoint;
@@ -32,14 +32,14 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         // 가상의 바닥을 주인공의 위치를 기준으로 생성
         plane = new Plane(transform.up, transform.position);
         virtualCamera = GameObject.FindObjectOfType<CinemachineVirtualCamera>();
-        photonView = GetComponent<PhotonView>();
+        pv = GetComponent<PhotonView>();
 
-        photonView.Synchronization = ViewSynchronization.UnreliableOnChange; //변경이 있을 때만 동기화 한다.
-        photonView.ObservedComponents[0] = this;
+        //pv.Synchronization = ViewSynchronization.UnreliableOnChange; //변경이 있을 때만 동기화 한다.
+        //pv.ObservedComponents.Add(this.transform);
         // 포톤뷰는 this로 관찰자로 지정한다
-        if (photonView != null)
+        if (pv!= null)
         {
-            if (photonView.IsMine)
+            if (pv.IsMine)
             {
                 virtualCamera.Follow = transform;
                 virtualCamera.LookAt = transform;
@@ -49,7 +49,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         receiveRot = transform.rotation;
     }
 
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    /*public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if(stream.IsWriting) //내가 주인공 캐릭터를 조종하는 경우
         {
@@ -63,21 +63,23 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
             receivePos = (Vector3)stream.ReceiveNext();
             receiveRot = (Quaternion)stream.ReceiveNext();
         }
-    }
+    }*/
     void Update()
     {
-        if (photonView.IsMine) // 로컬
+        if (pv.IsMine) // 로컬
         {
             Move();
             Turn();
         }
-        else // 리모트 
+        /*else // 리모트 
         {
-            transform.position = Vector3.Lerp(transform.position, receivePos, Time.deltaTime * damping);
+            //transform.position = Vector3.Lerp(transform.position, receivePos, Time.deltaTime * damping);
+            transform.position = receivePos;
             //로컬의 움직임과 수신받은 리모트의 움직임이 네트워크 동기화 되면서 부드럽게 움직여야 한다.
-            transform.rotation = Quaternion.Slerp(transform.rotation,receiveRot, Time.deltaTime * damping);
+            //transform.rotation = Quaternion.Slerp(transform.rotation,receiveRot, Time.deltaTime * damping);
+            transform.rotation = receiveRot;
             //로컬의 회전과 수신받은 리모트의 회전이 
-        }          
+        }    */      
     }
         void Move()
         {

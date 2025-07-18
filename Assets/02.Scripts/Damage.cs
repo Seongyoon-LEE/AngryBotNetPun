@@ -1,9 +1,11 @@
 using Photon.Pun;
+using Photon.Realtime;
+using Player = Photon.Realtime.Player;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class Damage : MonoBehaviour
+// 피격시 발사한 네트워크 유저의 확인 및 메세지 출력 로직 
+public class Damage : MonoBehaviourPunCallbacks
 {
     [SerializeField] Renderer[] renderers;
     [SerializeField] int initHp = 100;
@@ -11,6 +13,7 @@ public class Damage : MonoBehaviour
     Animator animator;
     CharacterController cc;
     WaitForSeconds wsPlayerDie;
+    GameManager gameManager;
 
     [Header("Hash 관련")]
     readonly int hashDie = Animator.StringToHash("Die");
@@ -23,6 +26,7 @@ public class Damage : MonoBehaviour
         animator = GetComponent<Animator>();
         cc = gameObject.GetComponent<CharacterController>();
         wsPlayerDie = new WaitForSeconds(Random.Range(3, 7));
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
     private void OnCollisionEnter(Collision c)
     {
@@ -32,9 +36,26 @@ public class Damage : MonoBehaviour
             curHp = Mathf.Clamp(curHp, 0, initHp);
             if (curHp <= 0)
             {
+                if (photonView.IsMine)
+                {   // 맞은 총알의 ActorNumber 추출 
+                    var actorNo = c.collider.GetComponent<Bullet>().actorNumber;
+                    // ActorNumber로 현재 입장한 플레이어 추출 
+                    Player lastShooterPlayer = PhotonNetwork.CurrentRoom.GetPlayer(actorNo);
+                    // 메세지 출력을 위한 문자열 포맷 
+                    string msg = string.Format($"\n<color=#0f0>{photonView.Owner.NickName}</color> is Killed by<color=#f00> {lastShooterPlayer.NickName} </color>");
+
+                    photonView.RPC("KillMessage", RpcTarget.AllBufferedViaServer, msg);
+                }
+
                 StartCoroutine(PlayerDie());
             }
         }
+    }
+    [PunRPC]
+    void KillMessage(string msg)
+    {
+        gameManager.msgList.text += msg;
+    }
         IEnumerator PlayerDie()
         {
             cc.enabled = false;
@@ -55,7 +76,7 @@ public class Damage : MonoBehaviour
             curHp = initHp;
             cc.enabled = true;
         }
-    }
+    
     void SetVisible(bool visible)
     {
         foreach(Renderer renderer in renderers) { renderer.enabled = visible; }

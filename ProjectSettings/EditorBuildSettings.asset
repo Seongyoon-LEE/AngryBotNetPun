@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/01.Scenes/LobbyScene.unity
+    guid: 2f065c459fd06294ca35e241782f7d03
+  - enabled: 1
     path: Assets/01.Scenes/AngryBotScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects: {}
